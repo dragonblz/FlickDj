@@ -48,8 +48,8 @@ class GestureConfig:
     min_samples: int = 3
     min_pair_ms: int = 40
     edge_margin: float = 0.06
-    rearm_stable_ms: int = 250
-    rearm_max_movement: float = 0.018
+    rearm_stable_ms: int = 90
+    rearm_max_movement: float = 0.035
 
 
 class GestureDetector:

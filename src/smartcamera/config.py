@@ -86,8 +86,8 @@ class Settings:
             gesture_max_vertical_ratio=_get_float("GESTURE_MAX_VERTICAL_RATIO", 1.25),
             gesture_window_ms=_get_int("GESTURE_WINDOW_MS", 350),
             gesture_min_confidence=_get_float("GESTURE_MIN_CONFIDENCE", 0.50),
-            gesture_rearm_stable_ms=_get_int("GESTURE_REARM_STABLE_MS", 250),
-            gesture_rearm_max_movement=_get_float("GESTURE_REARM_MAX_MOVEMENT", 0.018),
+            gesture_rearm_stable_ms=_get_int("GESTURE_REARM_STABLE_MS", 90),
+            gesture_rearm_max_movement=_get_float("GESTURE_REARM_MAX_MOVEMENT", 0.035),
             token_cache_path=Path.home() / ".flickdj" / "spotify_token.json",
             hand_landmarker_model_path=(
                 Path(os.environ["HAND_LANDMARKER_MODEL_PATH"])

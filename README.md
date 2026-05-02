@@ -113,8 +113,8 @@ GESTURE_MIN_HORIZONTAL_DISPLACEMENT=0.07
 GESTURE_MIN_HORIZONTAL_VELOCITY=0.85
 GESTURE_MAX_VERTICAL_RATIO=1.25
 GESTURE_MIN_CONFIDENCE=0.50
-GESTURE_REARM_STABLE_MS=250
-GESTURE_REARM_MAX_MOVEMENT=0.018
+GESTURE_REARM_STABLE_MS=90
+GESTURE_REARM_MAX_MOVEMENT=0.035
 ```
 
 Useful tweaks:
@@ -122,7 +122,7 @@ Useful tweaks:
 - Set `CONTROL_HAND=left` or `CONTROL_HAND=right` if auto-lock grabs the wrong hand.
 - Raise `GESTURE_MIN_HORIZONTAL_VELOCITY` to reduce accidental triggers.
 - Lower `GESTURE_MIN_HORIZONTAL_DISPLACEMENT` if real flicks are missed.
-- Raise `GESTURE_REARM_STABLE_MS` if moving your hand back into place still triggers.
+- Raise `GESTURE_REARM_STABLE_MS` if moving your hand back into place still triggers; lower it if repeat flicks feel delayed.
 - Set `PREVIOUS_MEDIA_KEY_PRESSES=2` only if previous-track fallback restarts the current song instead of moving back.
 
 ## How It Works
