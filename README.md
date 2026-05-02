@@ -113,6 +113,8 @@ GESTURE_MIN_HORIZONTAL_DISPLACEMENT=0.07
 GESTURE_MIN_HORIZONTAL_VELOCITY=0.85
 GESTURE_MAX_VERTICAL_RATIO=1.25
 GESTURE_MIN_CONFIDENCE=0.50
+GESTURE_REARM_STABLE_MS=250
+GESTURE_REARM_MAX_MOVEMENT=0.018
 ```
 
 Useful tweaks:
@@ -120,13 +122,14 @@ Useful tweaks:
 - Set `CONTROL_HAND=left` or `CONTROL_HAND=right` if auto-lock grabs the wrong hand.
 - Raise `GESTURE_MIN_HORIZONTAL_VELOCITY` to reduce accidental triggers.
 - Lower `GESTURE_MIN_HORIZONTAL_DISPLACEMENT` if real flicks are missed.
+- Raise `GESTURE_REARM_STABLE_MS` if moving your hand back into place still triggers.
 - Set `PREVIOUS_MEDIA_KEY_PRESSES=2` only if previous-track fallback restarts the current song instead of moving back.
 
 ## How It Works
 
 FlickDJ uses OpenCV for the webcam preview, MediaPipe for hand landmarks, a fingertip-edge flick detector for sharp left/right movement, Spotify OAuth PKCE for API playback control, and Windows media keys as fallback.
 
-Objects are ignored because they do not produce hand landmarks. If two hands are visible, FlickDJ locks onto one control hand and ignores the other until the lock times out.
+Objects are ignored because they do not produce hand landmarks. If two hands are visible, FlickDJ locks onto one control hand and ignores the other until the lock times out. After every skip, the detector disarms until your hand settles briefly, so returning your hand to ready position should not trigger the opposite command.
 
 ## Tests
 

@@ -59,6 +59,8 @@ def run(settings: Settings) -> int:
             min_horizontal_velocity=settings.gesture_min_horizontal_velocity,
             max_vertical_ratio=settings.gesture_max_vertical_ratio,
             min_confidence=settings.gesture_min_confidence,
+            rearm_stable_ms=settings.gesture_rearm_stable_ms,
+            rearm_max_movement=settings.gesture_rearm_max_movement,
         )
     )
     hand_selector = ControlHandSelector(

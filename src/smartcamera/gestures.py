@@ -48,6 +48,8 @@ class GestureConfig:
     min_samples: int = 3
     min_pair_ms: int = 40
     edge_margin: float = 0.06
+    rearm_stable_ms: int = 250
+    rearm_max_movement: float = 0.018
 
 
 class GestureDetector:
@@ -57,6 +59,7 @@ class GestureDetector:
         self.config = config or GestureConfig()
         self._samples: deque[HandSample] = deque()
         self._last_trigger_ms = -10**12
+        self._armed = False
 
     @property
     def sample_count(self) -> int:
@@ -65,6 +68,7 @@ class GestureDetector:
     def reset(self) -> None:
         self._samples.clear()
         self._last_trigger_ms = -10**12
+        self._armed = False
 
     def add_landmarks(
         self,
@@ -79,6 +83,9 @@ class GestureDetector:
         sample = self._sample_from_landmarks(list(landmarks), timestamp_ms, confidence)
         self._samples.append(sample)
         self._trim(timestamp_ms)
+        if not self._armed:
+            self._try_rearm()
+            return None
         return self._detect(timestamp_ms)
 
     def _sample_from_landmarks(
@@ -120,6 +127,7 @@ class GestureDetector:
         command = direction_to_command(direction)
         self._last_trigger_ms = timestamp_ms
         self._samples.clear()
+        self._armed = False
         return GestureEvent(
             direction=direction,
             command=command,
@@ -128,6 +136,30 @@ class GestureDetector:
             dy=dy,
             velocity_x=velocity_x,
         )
+
+    def _try_rearm(self) -> None:
+        if len(self._samples) < self.config.min_samples:
+            return
+
+        samples = list(self._samples)
+        if not all(sample.in_frame for sample in samples):
+            return
+
+        duration_ms = samples[-1].timestamp_ms - samples[0].timestamp_ms
+        if duration_ms < self.config.rearm_stable_ms:
+            return
+
+        min_x = min(sample.x for sample in samples)
+        max_x = max(sample.x for sample in samples)
+        min_y = min(sample.y for sample in samples)
+        max_y = max(sample.y for sample in samples)
+        if max(max_x - min_x, max_y - min_y) > self.config.rearm_max_movement:
+            return
+
+        self._armed = True
+        last = self._samples[-1]
+        self._samples.clear()
+        self._samples.append(last)
 
     def _best_flick_pair(self) -> tuple[float, float, float] | None:
         best: tuple[float, float, float] | None = None

@@ -42,8 +42,10 @@ def detector() -> GestureDetector:
 def feed_path(detector: GestureDetector, xs: list[float], ys: list[float] | None = None):
     ys = ys or [0.5] * len(xs)
     first_event = None
+    for timestamp_ms in (-300, -200, -100, 0):
+        detector.add_landmarks(landmarks_at(xs[0], ys[0]), timestamp_ms=timestamp_ms)
     for index, (x, y) in enumerate(zip(xs, ys)):
-        event = detector.add_landmarks(landmarks_at(x, y), timestamp_ms=index * 50)
+        event = detector.add_landmarks(landmarks_at(x, y), timestamp_ms=50 + index * 50)
         if first_event is None and event is not None:
             first_event = event
     return first_event
@@ -111,8 +113,12 @@ def test_rotation_flick_triggers_when_wrist_stays_stable() -> None:
         landmarks_with_stable_wrist(0.36, 0.56, 0.45, 0.43),
         landmarks_with_stable_wrist(0.36, 0.56, 0.53, 0.48),
     ]
+    for timestamp_ms in (-300, -200, -100, 0):
+        subject.add_landmarks(frames[0], timestamp_ms=timestamp_ms)
     for index, landmarks in enumerate(frames):
-        event = subject.add_landmarks(landmarks, timestamp_ms=index * 50)
+        detected = subject.add_landmarks(landmarks, timestamp_ms=50 + index * 50)
+        if event is None and detected is not None:
+            event = detected
 
     assert event is not None
     assert event.direction is GestureDirection.RIGHT
@@ -121,7 +127,42 @@ def test_rotation_flick_triggers_when_wrist_stays_stable() -> None:
 def test_hand_leaving_camera_edge_does_not_trigger() -> None:
     subject = detector()
     event = None
+    for timestamp_ms in (-300, -200, -100, 0):
+        subject.add_landmarks(landmarks_at(0.18, 0.5), timestamp_ms=timestamp_ms)
     for index, x in enumerate([0.18, 0.10, 0.03]):
-        event = subject.add_landmarks(landmarks_at(x, 0.5), timestamp_ms=index * 50)
+        event = subject.add_landmarks(landmarks_at(x, 0.5), timestamp_ms=50 + index * 50)
 
     assert event is None
+
+
+def test_return_to_ready_position_does_not_trigger_until_hand_settles() -> None:
+    subject = detector()
+    first = feed_path(subject, [0.40, 0.46, 0.52])
+
+    return_event = None
+    for index, x in enumerate([0.52, 0.46, 0.40], start=1):
+        return_event = subject.add_landmarks(
+            landmarks_at(x, 0.5),
+            timestamp_ms=1100 + index * 50,
+        )
+
+    assert first is not None
+    assert return_event is None
+
+
+def test_can_flick_again_after_settling() -> None:
+    subject = detector()
+    first = feed_path(subject, [0.40, 0.46, 0.52])
+
+    for index, timestamp_ms in enumerate([1300, 1400, 1500, 1600]):
+        subject.add_landmarks(landmarks_at(0.40, 0.5), timestamp_ms=timestamp_ms)
+    second = None
+    for index, x in enumerate([0.40, 0.46, 0.52]):
+        second = subject.add_landmarks(
+            landmarks_at(x, 0.5),
+            timestamp_ms=1700 + index * 50,
+        )
+
+    assert first is not None
+    assert second is not None
+    assert second.command is PlaybackCommand.NEXT
